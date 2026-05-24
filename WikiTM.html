@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wiki Time Machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1714;
+      --ink-2: #4a4642;
+      --ink-3: #7a7672;
+      --ink-4: #b8b4b0;
+      --paper: #f4efe6;
+      --paper-2: #ebe6dc;
+      --paper-3: #dedad0;
+      --amber: #b87a08;
+      --amber-light: #f5e6c0;
+      --red: #8b2e2e;
+      --border: rgba(26,23,20,0.11);
+      --border-med: rgba(26,23,20,0.2);
+      --topbar-h: 56px;
+      --scrubber-h: 96px;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 15px;
+    }
+
+    /* ── TOP BAR ─────────────────────────── */
+    #topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 0;
+      z-index: 200;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .topbar-brand {
+      padding: 0 18px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      height: 100%;
+      justify-content: center;
+    }
+
+    .brand-eye {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--amber);
+    }
+
+    .brand-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #f0ebe2;
+      white-space: nowrap;
+    }
+
+    .topbar-search {
+      flex: 1;
+      padding: 0 14px;
+      position: relative;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    #searchInput {
+      width: 100%;
+      height: 34px;
+      padding: 0 12px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13.5px;
+      color: #f0ebe2;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    #searchInput::placeholder { color: rgba(240,235,226,0.35); }
+    #searchInput:focus {
+      background: rgba(255,255,255,0.11);
+      border-color: var(--amber);
+    }
+
+    .ac-dropdown {
+      position: absolute;
+      top: calc(100% - 2px);
+      left: 14px; right: 14px;
+      background: var(--paper);
+      border: 1px solid var(--border-med);
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    }
+
+    .ac-dropdown.open { display: block; }
+
+    .ac-item {
+      padding: 9px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--ink);
+      transition: background 0.08s;
+    }
+
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover, .ac-item.focused { background: var(--amber-light); }
+    .ac-item-icon { color: var(--ink-4); font-size: 13px; }
+
+    /* ── TIME DISPLAY in topbar ── */
+    .topbar-time {
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      height: 100%;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .time-display {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 18px;
+      font-weight: 500;
+      color: #f0ebe2;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .time-display .dim { color: rgba(240,235,226,0.3); }
+    .time-display .active-seg { color: var(--amber); }
+
+    /* ── TRAVEL BTN ── */
+    #travelBtn {
+      margin: 0 14px;
+      height: 34px;
+      padding: 0 20px;
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+
+    #travelBtn:hover { opacity: 0.88; }
+    #travelBtn:active { transform: scale(0.97); }
+    #travelBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ── SCRUBBER BAR ─────────────────────── */
+    #scrubbar {
+      position: fixed;
+      top: var(--topbar-h);
+      left: 0; right: 0;
+      height: var(--scrubber-h);
+      background: var(--paper-2);
+      border-bottom: 1px solid var(--border);
+      z-index: 190;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* scrubber mode tabs */
+    .scrub-tabs {
+      display: flex;
+      height: 28px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .scrub-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-4);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      transition: background 0.12s, color 0.12s;
+      user-select: none;
+    }
+
+    .scrub-tab:last-child { border-right: none; }
+    .scrub-tab:hover { background: var(--paper-3); color: var(--ink-2); }
+
+    .scrub-tab.active {
+      color: var(--amber);
+      background: var(--paper);
+      border-bottom: 2px solid var(--amber);
+      margin-bottom: -1px;
+    }
+
+    .scrub-tab.locked {
+      color: var(--ink-4);
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* scrubber track */
+    .scrub-track {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 2px;
+      scrollbar-width: none;
+    }
+
+    .scrub-track::-webkit-scrollbar { display: none; }
+
+    .scrub-item {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      height: 48px;
+      border-radius: 5px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.1s;
+      padding: 0 6px;
+    }
+
+    .scrub-item:hover {
+      background: var(--paper-3);
+      border-color: var(--border);
+    }
+
+    .scrub-item.active {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .scrub-item.has-revs {
+      border-color: var(--border);
+      background: var(--paper);
+    }
+
+    .scrub-item.has-revs:hover {
+      border-color: var(--amber);
+      background: var(--amber-light);
+    }
+
+    .scrub-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-2);
+      line-height: 1;
+    }
+
+    .scrub-item.active .scrub-label { color: var(--paper); }
+
+    .scrub-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: var(--ink-4);
+      margin-top: 3px;
+    }
+
+    .scrub-item.active .scrub-sub { color: rgba(240,235,226,0.55); }
+    .scrub-item.has-revs .scrub-sub { color: var(--amber); }
+
+    .scrub-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--amber);
+      margin-top: 3px;
+    }
+
+    /* ── MAIN CONTENT AREA ───────────────── */
+    #content-area {
+      position: fixed;
+      top: calc(var(--topbar-h) + var(--scrubber-h));
+      left: 0; right: 0; bottom: 0;
+      overflow-y: auto;
+      background: var(--paper);
+    }
+
+    /* welcome / empty state */
+    #welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 16px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .welcome-clock {
+      font-size: 72px;
+      line-height: 1;
+      opacity: 0.12;
+    }
+
+    .welcome-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .welcome-title em { font-style: italic; color: var(--ink-3); }
+
+    .welcome-sub {
+      font-size: 13px;
+      color: var(--ink-3);
+      max-width: 360px;
+      line-height: 1.6;
+    }
+
+    .presets-wrap {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 500px;
+      margin-top: 8px;
+    }
+
+    .preset-chip {
+      padding: 5px 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      border: 1px solid var(--border-med);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .preset-chip:hover {
+      background: var(--paper-3);
+      border-color: var(--ink-3);
+      color: var(--ink);
+    }
+
+    /* ── ARTICLE AREA ── */
+    #article-wrap {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+    }
+
+    #article-wrap.show { display: flex; }
+
+    .article-topstrip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--paper-2);
+      flex-shrink: 0;
+      gap: 16px;
+    }
+
+    .article-title-display {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .article-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .rev-stamp {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--paper);
+      background: var(--ink);
+      border-radius: 3px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .wiki-extlink {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--amber);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(184,122,8,0.3);
+    }
+
+    .wiki-extlink:hover { border-color: var(--amber); }
+
+    .nav-pair { display: flex; gap: 5px; }
+
+    .nav-btn {
+      padding: 4px 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      border: 1px solid var(--border-med);
+      border-radius: 3px;
+      background: var(--paper);
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+
+    .nav-btn:hover { background: var(--paper-3); color: var(--ink); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* status strip */
+    .status-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 24px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--ink-4);
+      flex-shrink: 0;
+    }
+
+    .status-dot.loading { background: var(--amber); animation: blink 0.7s ease-in-out infinite; }
+    .status-dot.ok { background: #5a9e4a; }
+    .status-dot.err { background: var(--red); }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+    .status-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-3);
+    }
+
+    /* error box */
+    .error-box {
+      margin: 12px 24px;
+      padding: 12px 16px;
+      background: #fdf0f0;
+      border: 1px solid #e0b0b0;
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--red);
+      display: none;
+    }
+
+    .error-box.show { display: block; }
+
+    /* article body */
+    #articleBody {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px 48px;
+      background: #fff;
+      color: #202122;
+      font-family: 'Linux Libertine', 'Georgia', serif;
+      font-size: 14.5px;
+      line-height: 1.72;
+    }
+
+    #articleBody h2 {
+      font-size: 21px;
+      font-weight: 600;
+      border-bottom: 1px solid #a2a9b1;
+      padding-bottom: 4px;
+      margin: 22px 0 10px;
+    }
+
+    #articleBody h3 { font-size: 17px; font-weight: 600; margin: 16px 0 7px; }
+    #articleBody h4 { font-size: 15px; font-weight: 600; margin: 14px 0 5px; }
+    #articleBody p { margin-bottom: 10px; }
+    #articleBody sup { font-size: 11px; line-height: 1; }
+    #articleBody .mw-editsection { display: none !important; }
+
+    #articleBody a {
+      color: #0645ad;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    #articleBody a:hover { color: #0b0080; }
+
+    #articleBody table {
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 12px 0;
+      max-width: 100%;
+    }
+
+    #articleBody th, #articleBody td {
+      border: 1px solid #a2a9b1;
+      padding: 5px 9px;
+    }
+
+    #articleBody th {
+      background: #eaecf0;
+      font-weight: 600;
+    }
+
+    #articleBody .infobox {
+      float: right;
+      clear: right;
+      margin: 0 0 16px 20px;
+      border: 1px solid #a2a9b1;
+      background: #f8f9fa;
+      font-size: 12.5px;
+      max-width: 280px;
+    }
+
+    #articleBody img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    #articleBody ul, #articleBody ol {
+      padding-left: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    #articleBody li { margin-bottom: 3px; }
+
+    #articleBody .thumb {
+      background: #f8f9fa;
+      border: 1px solid #c8ccd1;
+      padding: 4px;
+      display: inline-block;
+      max-width: 50%;
+      margin: 6px;
+    }
+
+    #articleBody .thumbcaption {
+      font-size: 12px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    #articleBody::-webkit-scrollbar { width: 5px; }
+    #articleBody::-webkit-scrollbar-track { background: transparent; }
+    #articleBody::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div class="topbar-brand">
+    <div class="brand-eye">&#9679; Time Machine</div>
+    <div class="brand-name">WikiTM</div>
+  </div>
+
+  <div class="topbar-search">
+    <input type="text" id="searchInput" placeholder="Search any Wikipedia article…" autocomplete="off" spellcheck="false" />
+    <div class="ac-dropdown" id="acDropdown"></div>
+  </div>
+
+  <div class="topbar-time">
+    <div class="time-display" id="timeDisplay">—</div>
+  </div>
+
+  <button id="travelBtn" onclick="doTravel()">&#9654; Travel</button>
+</div>
+
+<!-- ── SCRUBBER BAR ── -->
+<div id="scrubbar">
+  <div class="scrub-tabs">
+    <div class="scrub-tab active" id="tab-year" onclick="setMode('year')">Year</div>
+    <div class="scrub-tab locked" id="tab-month" onclick="setMode('month')">Month</div>
+    <div class="scrub-tab locked" id="tab-day" onclick="setMode('day')">Day</div>
+    <div class="scrub-tab locked" id="tab-time" onclick="setMode('time')">Time</div>
+  </div>
+  <div class="scrub-track" id="scrubTrack"></div>
+</div>
+
+<!-- ── CONTENT AREA ── -->
+<div id="content-area">
+
+  <!-- welcome -->
+  <div id="welcome">
+    <div class="welcome-clock">&#9200;</div>
+    <div class="welcome-title">Read history <em>as it happened.</em></div>
+    <div class="welcome-sub">Search any Wikipedia article, scrub through time, and read it exactly as it was written.</div>
+    <div class="presets-wrap">
+      <button class="preset-chip" onclick="preset('September 11 attacks',2001,9,12,0)">Sep 12, 2001</button>
+      <button class="preset-chip" onclick="preset('iPhone',2007,6,29,0)">iPhone launch</button>
+      <button class="preset-chip" onclick="preset('Barack Obama',2008,11,5,0)">Obama elected</button>
+      <button class="preset-chip" onclick="preset('2008 financial crisis',2008,9,16,0)">2008 crash</button>
+      <button class="preset-chip" onclick="preset('COVID-19 pandemic',2020,3,11,0)">COVID declared</button>
+      <button class="preset-chip" onclick="preset('Minecraft',2011,11,18,0)">Minecraft 1.0</button>
+      <button class="preset-chip" onclick="preset('Elon Musk',2022,10,27,0)">Musk buys Twitter</button>
+    </div>
+  </div>
+
+  <!-- article -->
+  <div id="article-wrap">
+    <div class="article-topstrip">
+      <div class="article-title-display" id="rTitle"></div>
+      <div class="article-meta-right">
+        <div class="nav-pair">
+          <button class="nav-btn" id="olderBtn" onclick="stepRevision(1)" disabled>&#8592; Older</button>
+          <button class="nav-btn" id="newerBtn" onclick="stepRevision(-1)" disabled>Newer &#8594;</button>
+        </div>
+        <div class="rev-stamp" id="rDateStamp"></div>
+        <a class="wiki-extlink" id="rWikiLink" href="#" target="_blank" rel="noopener">View on Wikipedia ↗</a>
+      </div>
+    </div>
+
+    <div class="status-strip">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="status-text" id="statusText">Ready</span>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div id="articleBody"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+// ── STATE ──────────────────────────────────────────
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Selected time values
+let selYear  = null;
+let selMonth = null; // 1-12
+let selDay   = null;
+let selHour  = null; // 0-23, null = end of day
+
+// Current scrubber mode
+let mode = 'year'; // year | month | day | time
+
+// Revision state
+let revisions = [];
+let revIdx = 0;
+let currentTitle = '';
+
+// Autocomplete
+let acTimer = null;
+let acFocused = -1;
+
+// ── ELEMENTS ──────────────────────────────────────
+const searchInput  = document.getElementById('searchInput');
+const acDropdown   = document.getElementById('acDropdown');
+const travelBtn    = document.getElementById('travelBtn');
+const timeDisplay  = document.getElementById('timeDisplay');
+const scrubTrack   = document.getElementById('scrubTrack');
+const rTitle       = document.getElementById('rTitle');
+const rDateStamp   = document.getElementById('rDateStamp');
+const rWikiLink    = document.getElementById('rWikiLink');
+const statusDot    = document.getElementById('statusDot');
+const statusText   = document.getElementById('statusText');
+const errorBox     = document.getElementById('errorBox');
+const articleBody  = document.getElementById('articleBody');
+const olderBtn     = document.getElementById('olderBtn');
+const newerBtn     = document.getElementById('newerBtn');
+const articleWrap  = document.getElementById('article-wrap');
+const welcome      = document.getElementById('welcome');
+
+// ── HELPERS ───────────────────────────────────────
+const pad = n => String(n).padStart(2,'0');
+
+function fmtTimestamp(isoStr) {
+  const d = new Date(isoStr);
+  return d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+}
+
+function fmtTimestampFull(isoStr) {
+  const d = new Date(isoStr);
+  return d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
+    + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' UTC';
+}
+
+function buildTimestamp() {
+  const y = selYear || 2010;
+  const m = pad(selMonth || 1);
+  const d = pad(selDay || 1);
+  const h = selHour !== null ? selHour : 23;
+  const min = selHour !== null ? '00' : '59';
+  const s   = selHour !== null ? '00' : '59';
+  return `${y}-${m}-${d}T${pad(h)}:${min}:${s}Z`;
+}
+
+function daysInMonth(y, m) {
+  return new Date(y, m, 0).getDate();
+}
+
+function setStatus(type, msg) {
+  statusDot.className = 'status-dot' + (type ? ' ' + type : '');
+  statusText.textContent = msg;
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.className = 'error-box show';
+}
+
+function hideError() { errorBox.className = 'error-box'; }
+
+// ── TIME DISPLAY ──────────────────────────────────
+function updateTimeDisplay() {
+  let html = '';
+  if (selYear === null) { timeDisplay.innerHTML = '<span class="dim">pick a year</span>'; return; }
+
+  html += `<span class="${mode==='year' ? 'active-seg' : ''}">${selYear}</span>`;
+
+  if (selMonth !== null) {
+    html += `<span class="dim">-</span><span class="${mode==='month' ? 'active-seg' : ''}">${pad(selMonth)}</span>`;
+  } else {
+    html += `<span class="dim">-??</span>`;
+  }
+
+  if (selDay !== null) {
+    html += `<span class="dim">-</span><span class="${mode==='day' ? 'active-seg' : ''}">${pad(selDay)}</span>`;
+  } else if (selMonth !== null) {
+    html += `<span class="dim">-??</span>`;
+  }
+
+  if (selHour !== null) {
+    html += `<span class="dim"> </span><span class="${mode==='time' ? 'active-seg' : ''}">${pad(selHour)}:00</span>`;
+  } else if (selDay !== null) {
+    html += `<span class="dim"> ??:??</span>`;
+  }
+
+  timeDisplay.innerHTML = html;
+}
+
+// ── TABS / MODE ────────────────────────────────────
+function setMode(m) {
+  if (document.getElementById('tab-'+m).classList.contains('locked')) return;
+  mode = m;
+  ['year','month','day','time'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    el.classList.toggle('active', t === m);
+  });
+  renderScrubber();
+  updateTimeDisplay();
+}
+
+function unlockTabsUpTo(m) {
+  const order = ['year','month','day','time'];
+  const idx = order.indexOf(m);
+  order.forEach((t, i) => {
+    const el = document.getElementById('tab-'+t);
+    el.classList.toggle('locked', i > idx);
+  });
+}
+
+// ── SCRUBBER RENDER ────────────────────────────────
+function renderScrubber() {
+  scrubTrack.innerHTML = '';
+
+  if (mode === 'year') {
+    const start = 2001, end = new Date().getFullYear();
+    for (let y = start; y <= end; y++) {
+      scrubTrack.appendChild(makeScrubItem(String(y), '', y === selYear, () => pickYear(y)));
+    }
+    // scroll to selected
+    if (selYear) scrollScrubTo(selYear - start);
+
+  } else if (mode === 'month') {
+    MONTHS.forEach((name, i) => {
+      const m = i + 1;
+      scrubTrack.appendChild(makeScrubItem(name, String(selYear), m === selMonth, () => pickMonth(m)));
+    });
+    if (selMonth) scrollScrubTo(selMonth - 1);
+
+  } else if (mode === 'day') {
+    const days = daysInMonth(selYear, selMonth);
+    for (let d = 1; d <= days; d++) {
+      scrubTrack.appendChild(makeScrubItem(pad(d), MONTHS[selMonth-1], d === selDay, () => pickDay(d)));
+    }
+    if (selDay) scrollScrubTo(selDay - 1);
+
+  } else if (mode === 'time') {
+    // hours 0-23
+    for (let h = 0; h < 24; h++) {
+      const label = pad(h) + ':00';
+      scrubTrack.appendChild(makeScrubItem(label, 'UTC', h === selHour, () => pickHour(h)));
+    }
+    if (selHour !== null) scrollScrubTo(selHour);
+  }
+}
+
+function makeScrubItem(label, sub, isActive, onClick) {
+  const div = document.createElement('div');
+  div.className = 'scrub-item' + (isActive ? ' active' : '');
+  div.innerHTML = `<div class="scrub-label">${label}</div>${sub ? `<div class="scrub-sub">${sub}</div>` : ''}`;
+  div.addEventListener('click', onClick);
+  return div;
+}
+
+function scrollScrubTo(idx) {
+  requestAnimationFrame(() => {
+    const items = scrubTrack.querySelectorAll('.scrub-item');
+    if (items[idx]) {
+      items[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  });
+}
+
+// ── PICK HANDLERS ─────────────────────────────────
+function pickYear(y) {
+  selYear = y;
+  selMonth = null; selDay = null; selHour = null;
+  unlockTabsUpTo('month');
+  updateTimeDisplay();
+  // re-render to mark active
+  renderScrubber();
+  // auto-advance to month
+  setMode('month');
+}
+
+function pickMonth(m) {
+  selMonth = m;
+  selDay = null; selHour = null;
+  unlockTabsUpTo('day');
+  updateTimeDisplay();
+  renderScrubber();
+  setMode('day');
+}
+
+function pickDay(d) {
+  selDay = d;
+  selHour = null;
+  unlockTabsUpTo('time');
+  updateTimeDisplay();
+  renderScrubber();
+  setMode('time');
+}
+
+function pickHour(h) {
+  selHour = h;
+  updateTimeDisplay();
+  renderScrubber();
+  // auto-travel when hour is picked
+  doTravel();
+}
+
+// ── PRESETS ───────────────────────────────────────
+function preset(article, y, m, d, h) {
+  searchInput.value = article;
+  selYear = y; selMonth = m; selDay = d; selHour = h;
+  unlockTabsUpTo('time');
+  updateTimeDisplay();
+  setMode('time');
+  doTravel();
+}
+
+// ── AUTOCOMPLETE ──────────────────────────────────
+searchInput.addEventListener('input', () => {
+  clearTimeout(acTimer);
+  acFocused = -1;
+  const q = searchInput.value.trim();
+  if (q.length < 2) { closeAc(); return; }
+  acTimer = setTimeout(() => fetchAc(q), 260);
+});
+
+searchInput.addEventListener('keydown', e => {
+  const items = acDropdown.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acFocused = Math.min(acFocused+1, items.length-1);
+    items.forEach((el,i) => el.classList.toggle('focused', i===acFocused));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acFocused = Math.max(acFocused-1, 0);
+    items.forEach((el,i) => el.classList.toggle('focused', i===acFocused));
+  } else if (e.key === 'Enter') {
+    if (acFocused >= 0 && items[acFocused]) items[acFocused].click();
+    else { closeAc(); doTravel(); }
+  } else if (e.key === 'Escape') { closeAc(); }
+});
+
+document.addEventListener('click', e => {
+  if (!acDropdown.contains(e.target) && e.target !== searchInput) closeAc();
+});
+
+function closeAc() {
+  acDropdown.className = 'ac-dropdown';
+  acDropdown.innerHTML = '';
+  acFocused = -1;
+}
+
+async function fetchAc(q) {
+  try {
+    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=7&format=json&origin=*`);
+    const data = await res.json();
+    const titles = data[1] || [];
+    if (!titles.length) { closeAc(); return; }
+    acDropdown.innerHTML = titles.map(t =>
+      `<div class="ac-item" onclick="selectAc('${t.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+        <span class="ac-item-icon">&#128196;</span>${t}
+      </div>`
+    ).join('');
+    acDropdown.className = 'ac-dropdown open';
+  } catch(e) { closeAc(); }
+}
+
+function selectAc(title) {
+  searchInput.value = title;
+  closeAc();
+  doTravel();
+}
+
+// ── TRAVEL ────────────────────────────────────────
+async function doTravel() {
+  const title = searchInput.value.trim();
+  if (!title) { setStatus('err','Enter an article name.'); return; }
+  if (!selYear) { setStatus('err','Pick a year first.'); return; }
+
+  travelBtn.disabled = true;
+  hideError();
+  revisions = []; revIdx = 0;
+
+  welcome.style.display = 'none';
+  articleWrap.className = 'show';
+
+  const ts = buildTimestamp();
+  setStatus('loading', `Searching "${title}" at ${ts.slice(0,10)}…`);
+
+  try {
+    const revUrl = `https://en.wikipedia.org/w/api.php?action=query` +
+      `&titles=${encodeURIComponent(title)}` +
+      `&prop=revisions` +
+      `&rvprop=ids|timestamp|comment|user` +
+      `&rvstart=${ts}` +
+      `&rvdir=older` +
+      `&rvlimit=20` +
+      `&format=json&origin=*`;
+
+    const revRes  = await fetch(revUrl);
+    const revData = await revRes.json();
+
+    const pages  = revData.query.pages;
+    const pageId = Object.keys(pages)[0];
+
+    if (pageId === '-1') throw new Error(`No article found for "${title}". Check the spelling.`);
+
+    const page    = pages[pageId];
+    currentTitle  = page.title;
+    const pageRevs = page.revisions || [];
+
+    if (!pageRevs.length) throw new Error(`No revision found at or before ${ts.slice(0,10)}. The article may not have existed yet — try a later date.`);
+
+    revisions = pageRevs;
+    revIdx = 0;
+
+    // async: fetch newer revisions for nav context
+    fetchNewerRevisions(pageRevs[0].timestamp);
+
+    await renderRevision(0);
+
+  } catch(err) {
+    setStatus('err', 'Could not load article.');
+    showError(err.message || 'An unexpected error occurred.');
+  } finally {
+    travelBtn.disabled = false;
+  }
+}
+
+async function fetchNewerRevisions(fromTs) {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query` +
+      `&titles=${encodeURIComponent(currentTitle)}` +
+      `&prop=revisions&rvprop=ids|timestamp` +
+      `&rvstart=${fromTs}&rvdir=newer&rvlimit=6&format=json&origin=*`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    const page = Object.values(data.query.pages)[0];
+    const newer = (page.revisions || []).filter(r => r.revid !== revisions[0].revid).slice(0,5);
+    if (newer.length) {
+      revisions = [...newer.reverse(), ...revisions];
+      revIdx = newer.length;
+    }
+    updateNavBtns();
+  } catch(e) {}
+}
+
+async function renderRevision(idx) {
+  const rev = revisions[idx];
+  if (!rev) return;
+
+  setStatus('loading', `Loading revision ${rev.revid} from ${fmtTimestamp(rev.timestamp)}…`);
+
+  const parseUrl = `https://en.wikipedia.org/w/api.php?action=parse` +
+    `&oldid=${rev.revid}` +
+    `&prop=text` +
+    `&disablelimitreport=1` +
+    `&disableeditsection=1` +
+    `&format=json&origin=*`;
+
+  const parseRes  = await fetch(parseUrl);
+  const parseData = await parseRes.json();
+
+  if (!parseData.parse || !parseData.parse.text) {
+    throw new Error('Could not parse this revision.');
+  }
+
+  const rawHtml   = parseData.parse.text['*'];
+  const cleanHtml = cleanWikiHtml(rawHtml);
+
+  rTitle.textContent = currentTitle;
+
+  // Show exact timestamp if user drilled to time level, otherwise show date only
+  const showFull = selHour !== null;
+  rDateStamp.textContent = showFull ? fmtTimestampFull(rev.timestamp) : fmtTimestamp(rev.timestamp);
+
+  rWikiLink.href = `https://en.wikipedia.org/w/index.php?title=${encodeURIComponent(currentTitle)}&oldid=${rev.revid}`;
+
+  articleBody.innerHTML = cleanHtml;
+  wireLinks();
+  fixImages();
+
+  updateNavBtns();
+
+  const statusLabel = showFull ? fmtTimestampFull(rev.timestamp) : fmtTimestamp(rev.timestamp);
+  setStatus('ok', `Revision from ${statusLabel}  ·  #${rev.revid}`);
+  articleBody.scrollTop = 0;
+}
+
+function cleanWikiHtml(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+
+  ['.mw-editsection','#toc','.toc','.navbox','.navbox-inner','.navbox-group',
+   '.ambox','.mbox-small','.sistersitebox','.reflist','.references','.refbegin',
+   '.catlinks','.printfooter','.mw-authority-control','.noprint',
+   '[class*="noprint"]','.mw-empty-elt','.shortdescription','.hatnote',
+   'style','script','.side-box','.portal','.navigation-not-searchable'
+  ].forEach(sel => { try { div.querySelectorAll(sel).forEach(el => el.remove()); } catch(e){} });
+
+  div.querySelectorAll('[style]').forEach(el => {
+    const s = el.getAttribute('style') || '';
+    el.removeAttribute('style');
+    if (s.includes('float:right') || s.includes('float: right')) el.style.float = 'right';
+    else if (s.includes('float:left') || s.includes('float: left')) el.style.float = 'left';
+  });
+
+  return div.innerHTML;
+}
+
+function wireLinks() {
+  articleBody.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    if (href.startsWith('/wiki/') && !href.includes(':')) {
+      const decoded = decodeURIComponent(href.replace('/wiki/','')).replace(/_/g,' ');
+      a.href = '#';
+      a.title = `Browse: ${decoded}`;
+      a.onclick = e => { e.preventDefault(); searchInput.value = decoded; doTravel(); };
+    } else if (href.startsWith('//')) {
+      a.href = 'https:' + href;
+      a.target = '_blank'; a.rel = 'noopener';
+    } else if (href.startsWith('http')) {
+      a.target = '_blank'; a.rel = 'noopener';
+    } else if (!href.startsWith('#')) {
+      a.href = '#';
+      a.onclick = e => e.preventDefault();
+    }
+  });
+}
+
+function fixImages() {
+  articleBody.querySelectorAll('img').forEach(img => {
+    // Fix protocol-relative URLs
+    let src = img.getAttribute('src') || '';
+    if (src.startsWith('//')) src = 'https:' + src;
+
+    // Fix srcset
+    let srcset = img.getAttribute('srcset') || '';
+    if (srcset) {
+      srcset = srcset.replace(/\/\/upload\.wikimedia\.org/g, 'https://upload.wikimedia.org');
+      img.setAttribute('srcset', srcset);
+    }
+
+    // Ensure src uses https
+    src = src.replace(/^http:\/\//, 'https://');
+    img.src = src;
+    img.loading = 'lazy';
+
+    // Remove width/height constraints that break layout
+    img.removeAttribute('width');
+    img.removeAttribute('height');
+    img.style.maxWidth = '100%';
+    img.style.height = 'auto';
+  });
+}
+
+// ── NAVIGATION ────────────────────────────────────
+async function stepRevision(dir) {
+  const newIdx = revIdx + dir;
+  if (newIdx < 0 || newIdx >= revisions.length) return;
+  revIdx = newIdx;
+  travelBtn.disabled = true;
+  setStatus('loading','Loading revision…');
+  try { await renderRevision(revIdx); }
+  catch(e) { showError(e.message || 'Failed to load.'); setStatus('err','Error'); }
+  finally { travelBtn.disabled = false; }
+}
+
+function updateNavBtns() {
+  olderBtn.disabled = revIdx >= revisions.length - 1;
+  newerBtn.disabled = revIdx <= 0;
+}
+
+// ── INIT ──────────────────────────────────────────
+renderScrubber();
+updateTimeDisplay();
+</script>
+</body>
+</html>
