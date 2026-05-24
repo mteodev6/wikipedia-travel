@@ -6,81 +6,93 @@
   <title>Wiki Time Machine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Real Wikipedia CSS -->
+  <link rel="stylesheet" href="https://en.wikipedia.org/w/load.php?modules=mediawiki.legacy.commonPrint,shared|mediawiki.skinning.interface|skins.vector.styles&only=styles&skin=vector" />
+
   <style>
+    /* ── Reset & layout ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #1a1714;
-      --ink-2: #4a4642;
-      --ink-3: #7a7672;
-      --ink-4: #b8b4b0;
-      --paper: #f4efe6;
-      --paper-2: #ebe6dc;
-      --paper-3: #dedad0;
-      --amber: #b87a08;
-      --amber-light: #f5e6c0;
-      --red: #8b2e2e;
-      --border: rgba(26,23,20,0.11);
-      --border-med: rgba(26,23,20,0.2);
-      --topbar-h: 56px;
-      --scrubber-h: 96px;
+      --bar-bg: #1c1c1e;
+      --bar-border: rgba(255,255,255,0.07);
+      --bar-text: #e8e4dc;
+      --accent: #c4830a;
+      --accent-dim: rgba(196,131,10,0.18);
+      --topbar-h: 52px;
+      --scrub-h: 84px;
+      --scrub-tab-h: 26px;
+      --scrub-track-h: calc(84px - 26px - 1px);
+      --grey: #72777d;
+      --grey-light: #a7adb5;
     }
 
     html, body {
       height: 100%;
       overflow: hidden;
-      background: var(--paper);
-      color: var(--ink);
+      background: #f8f9fa;
       font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 15px;
     }
 
-    /* ── TOP BAR ─────────────────────────── */
+    /* ── TOP BAR ── */
     #topbar {
       position: fixed;
       top: 0; left: 0; right: 0;
       height: var(--topbar-h);
-      background: var(--ink);
+      background: var(--bar-bg);
       display: flex;
       align-items: center;
-      gap: 0;
-      z-index: 200;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      z-index: 9000;
+      border-bottom: 1px solid var(--bar-border);
     }
 
-    .topbar-brand {
-      padding: 0 18px;
+    .tb-brand {
+      padding: 0 14px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border-right: 1px solid var(--bar-border);
+      height: 100%;
       flex-shrink: 0;
+    }
+
+    .tb-brand-icon {
+      font-size: 20px;
+      line-height: 1;
+      opacity: 0.7;
+    }
+
+    .tb-brand-text {
       display: flex;
       flex-direction: column;
-      gap: 1px;
-      border-right: 1px solid rgba(255,255,255,0.08);
-      height: 100%;
-      justify-content: center;
+      gap: 0;
     }
 
-    .brand-eye {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 8px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--amber);
-    }
-
-    .brand-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 16px;
-      font-weight: 700;
-      color: #f0ebe2;
+    .tb-brand-title {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--bar-text);
+      line-height: 1.2;
       white-space: nowrap;
     }
 
-    .topbar-search {
+    .tb-brand-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+
+    .tb-search {
       flex: 1;
-      padding: 0 14px;
+      padding: 0 12px;
       position: relative;
-      border-right: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid var(--bar-border);
       height: 100%;
       display: flex;
       align-items: center;
@@ -89,122 +101,115 @@
 
     #searchInput {
       width: 100%;
-      height: 34px;
-      padding: 0 12px;
+      height: 32px;
+      padding: 0 10px;
       font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 13.5px;
-      color: #f0ebe2;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 4px;
+      font-size: 13px;
+      color: var(--bar-text);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 3px;
       outline: none;
       transition: border-color 0.15s, background 0.15s;
+      caret-color: var(--accent);
     }
 
-    #searchInput::placeholder { color: rgba(240,235,226,0.35); }
-    #searchInput:focus {
-      background: rgba(255,255,255,0.11);
-      border-color: var(--amber);
-    }
+    #searchInput::placeholder { color: rgba(232,228,220,0.3); }
+    #searchInput:focus { background: rgba(255,255,255,0.1); border-color: var(--accent); }
 
-    .ac-dropdown {
+    .ac-list {
       position: absolute;
-      top: calc(100% - 2px);
-      left: 14px; right: 14px;
-      background: var(--paper);
-      border: 1px solid var(--border-med);
+      top: 100%;
+      left: 12px; right: 12px;
+      background: #fff;
+      border: 1px solid #c8ccd1;
       border-top: none;
-      border-radius: 0 0 5px 5px;
-      z-index: 300;
+      border-radius: 0 0 4px 4px;
+      z-index: 9999;
       display: none;
       overflow: hidden;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     }
 
-    .ac-dropdown.open { display: block; }
+    .ac-list.open { display: block; }
 
-    .ac-item {
-      padding: 9px 14px;
+    .ac-row {
+      padding: 8px 12px;
       font-size: 13px;
       cursor: pointer;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid #eaecf0;
       display: flex;
       align-items: center;
-      gap: 9px;
-      color: var(--ink);
+      gap: 8px;
+      color: #202122;
       transition: background 0.08s;
     }
 
-    .ac-item:last-child { border-bottom: none; }
-    .ac-item:hover, .ac-item.focused { background: var(--amber-light); }
-    .ac-item-icon { color: var(--ink-4); font-size: 13px; }
+    .ac-row:last-child { border-bottom: none; }
+    .ac-row:hover, .ac-row.focus { background: #eaf3fb; }
+    .ac-row-icon { color: #72777d; font-size: 12px; }
 
-    /* ── TIME DISPLAY in topbar ── */
-    .topbar-time {
-      padding: 0 16px;
+    .tb-time {
+      padding: 0 14px;
+      border-right: 1px solid var(--bar-border);
+      height: 100%;
       display: flex;
       align-items: center;
-      gap: 12px;
       flex-shrink: 0;
-      height: 100%;
-      border-right: 1px solid rgba(255,255,255,0.08);
     }
 
-    .time-display {
+    #timeDisplay {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 500;
-      color: #f0ebe2;
+      color: var(--bar-text);
       letter-spacing: 0.02em;
       white-space: nowrap;
     }
 
-    .time-display .dim { color: rgba(240,235,226,0.3); }
-    .time-display .active-seg { color: var(--amber); }
+    #timeDisplay .dim { color: rgba(232,228,220,0.25); }
+    #timeDisplay .seg-active { color: var(--accent); }
 
-    /* ── TRAVEL BTN ── */
     #travelBtn {
-      margin: 0 14px;
-      height: 34px;
-      padding: 0 20px;
-      background: var(--amber);
+      margin: 0 12px;
+      height: 32px;
+      padding: 0 18px;
+      background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: 3px;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 12px;
       font-weight: 500;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       cursor: pointer;
       white-space: nowrap;
-      transition: opacity 0.15s, transform 0.1s;
       flex-shrink: 0;
+      transition: opacity 0.15s;
     }
 
-    #travelBtn:hover { opacity: 0.88; }
-    #travelBtn:active { transform: scale(0.97); }
-    #travelBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    #travelBtn:hover { opacity: 0.85; }
+    #travelBtn:disabled { opacity: 0.38; cursor: not-allowed; }
 
-    /* ── SCRUBBER BAR ─────────────────────── */
+    /* ── SCRUBBER ── */
     #scrubbar {
       position: fixed;
       top: var(--topbar-h);
       left: 0; right: 0;
-      height: var(--scrubber-h);
-      background: var(--paper-2);
-      border-bottom: 1px solid var(--border);
-      z-index: 190;
+      height: var(--scrub-h);
+      background: #fff;
+      border-bottom: 1px solid #c8ccd1;
+      z-index: 8000;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
 
-    /* scrubber mode tabs */
     .scrub-tabs {
       display: flex;
-      height: 28px;
-      border-bottom: 1px solid var(--border);
+      height: var(--scrub-tab-h);
+      border-bottom: 1px solid #eaecf0;
       flex-shrink: 0;
+      background: #f8f9fa;
     }
 
     .scrub-tab {
@@ -216,38 +221,35 @@
       font-size: 9px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--ink-4);
+      color: #72777d;
       cursor: pointer;
-      border-right: 1px solid var(--border);
-      transition: background 0.12s, color 0.12s;
+      border-right: 1px solid #eaecf0;
+      transition: all 0.1s;
       user-select: none;
     }
 
     .scrub-tab:last-child { border-right: none; }
-    .scrub-tab:hover { background: var(--paper-3); color: var(--ink-2); }
+    .scrub-tab:hover:not(.locked) { background: #eaecf0; color: #202122; }
 
     .scrub-tab.active {
-      color: var(--amber);
-      background: var(--paper);
-      border-bottom: 2px solid var(--amber);
+      color: var(--accent);
+      background: #fff;
+      border-bottom: 2px solid var(--accent);
       margin-bottom: -1px;
     }
 
     .scrub-tab.locked {
-      color: var(--ink-4);
-      opacity: 0.45;
+      color: #c8ccd1;
       cursor: not-allowed;
-      pointer-events: none;
     }
 
-    /* scrubber track */
     .scrub-track {
       flex: 1;
       overflow-x: auto;
       overflow-y: hidden;
       display: flex;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 12px;
       gap: 2px;
       scrollbar-width: none;
     }
@@ -260,534 +262,592 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-width: 48px;
-      height: 48px;
-      border-radius: 5px;
+      min-width: 44px;
+      height: 46px;
+      border-radius: 4px;
       cursor: pointer;
       border: 1px solid transparent;
       transition: all 0.1s;
-      padding: 0 6px;
+      padding: 0 4px;
+      position: relative;
     }
 
-    .scrub-item:hover {
-      background: var(--paper-3);
-      border-color: var(--border);
+    .scrub-item:hover:not(.before-creation):not(.no-revs) {
+      background: #eaecf0;
+      border-color: #c8ccd1;
     }
 
     .scrub-item.active {
-      background: var(--ink);
-      border-color: var(--ink);
+      background: var(--bar-bg);
+      border-color: var(--bar-bg);
     }
 
+    /* greyed out — before article was created */
+    .scrub-item.before-creation {
+      opacity: 0.28;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* has revisions indicator */
     .scrub-item.has-revs {
-      border-color: var(--border);
-      background: var(--paper);
-    }
-
-    .scrub-item.has-revs:hover {
-      border-color: var(--amber);
-      background: var(--amber-light);
+      border-color: #eaecf0;
     }
 
     .scrub-label {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 12px;
       font-weight: 500;
-      color: var(--ink-2);
+      color: #202122;
       line-height: 1;
     }
 
-    .scrub-item.active .scrub-label { color: var(--paper); }
+    .scrub-item.active .scrub-label { color: #f8f9fa; }
+    .scrub-item.before-creation .scrub-label { color: #72777d; }
 
     .scrub-sub {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 8px;
-      color: var(--ink-4);
-      margin-top: 3px;
+      color: #72777d;
+      margin-top: 2px;
     }
 
-    .scrub-item.active .scrub-sub { color: rgba(240,235,226,0.55); }
-    .scrub-item.has-revs .scrub-sub { color: var(--amber); }
+    .scrub-item.active .scrub-sub { color: rgba(248,249,250,0.55); }
 
-    .scrub-dot {
+    .scrub-revdot {
       width: 4px; height: 4px;
       border-radius: 50%;
-      background: var(--amber);
-      margin-top: 3px;
+      background: var(--accent);
+      margin-top: 2px;
     }
 
-    /* ── MAIN CONTENT AREA ───────────────── */
+    /* ── CONTENT ── */
     #content-area {
       position: fixed;
-      top: calc(var(--topbar-h) + var(--scrubber-h));
+      top: calc(var(--topbar-h) + var(--scrub-h));
       left: 0; right: 0; bottom: 0;
-      overflow-y: auto;
-      background: var(--paper);
+      overflow: hidden;
+      background: #f8f9fa;
     }
 
-    /* welcome / empty state */
+    /* welcome */
     #welcome {
+      height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
-      gap: 16px;
-      padding: 40px;
-      text-align: center;
-    }
-
-    .welcome-clock {
-      font-size: 72px;
-      line-height: 1;
-      opacity: 0.12;
-    }
-
-    .welcome-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--ink);
-    }
-
-    .welcome-title em { font-style: italic; color: var(--ink-3); }
-
-    .welcome-sub {
-      font-size: 13px;
-      color: var(--ink-3);
-      max-width: 360px;
-      line-height: 1.6;
-    }
-
-    .presets-wrap {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 500px;
-      margin-top: 8px;
-    }
-
-    .preset-chip {
-      padding: 5px 12px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      border: 1px solid var(--border-med);
-      border-radius: 20px;
-      background: transparent;
-      color: var(--ink-2);
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-
-    .preset-chip:hover {
-      background: var(--paper-3);
-      border-color: var(--ink-3);
-      color: var(--ink);
-    }
-
-    /* ── ARTICLE AREA ── */
-    #article-wrap {
-      display: none;
-      height: 100%;
-      flex-direction: column;
-    }
-
-    #article-wrap.show { display: flex; }
-
-    .article-topstrip {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 24px;
-      border-bottom: 1px solid var(--border);
-      background: var(--paper-2);
-      flex-shrink: 0;
-      gap: 16px;
-    }
-
-    .article-title-display {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--ink);
-    }
-
-    .article-meta-right {
-      display: flex;
-      align-items: center;
       gap: 12px;
-      flex-shrink: 0;
+      padding: 32px;
+      text-align: center;
+      background: #f8f9fa;
     }
 
-    .rev-stamp {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      color: var(--paper);
-      background: var(--ink);
-      border-radius: 3px;
-      padding: 3px 10px;
-      white-space: nowrap;
+    .wlc-clock { font-size: 60px; opacity: 0.1; line-height: 1; }
+
+    .wlc-title {
+      font-family: 'Linux Libertine', 'Georgia', serif;
+      font-size: 26px;
+      color: #202122;
     }
 
-    .wiki-extlink {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      color: var(--amber);
-      text-decoration: none;
-      border-bottom: 1px solid rgba(184,122,8,0.3);
-    }
+    .wlc-sub { font-size: 13px; color: #54595d; max-width: 340px; line-height: 1.6; }
 
-    .wiki-extlink:hover { border-color: var(--amber); }
+    .presets { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 480px; margin-top: 6px; }
 
-    .nav-pair { display: flex; gap: 5px; }
-
-    .nav-btn {
+    .preset-btn {
       padding: 4px 12px;
+      font-size: 12px;
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      border: 1px solid var(--border-med);
-      border-radius: 3px;
-      background: var(--paper);
-      color: var(--ink-2);
+      border: 1px solid #c8ccd1;
+      border-radius: 20px;
+      background: #fff;
+      color: #54595d;
       cursor: pointer;
       transition: all 0.1s;
     }
 
-    .nav-btn:hover { background: var(--paper-3); color: var(--ink); }
-    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .preset-btn:hover { background: #eaecf0; border-color: #a2a9b1; color: #202122; }
 
-    /* status strip */
-    .status-strip {
+    /* article view */
+    #article-view {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+    }
+
+    #article-view.show { display: flex; }
+
+    /* thin chrome bar above article */
+    .art-chrome {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 20px;
+      background: #fff;
+      border-bottom: 1px solid #eaecf0;
+      flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .art-chrome-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .art-status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #c8ccd1;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .art-status-dot.loading { background: var(--accent); animation: blink 0.7s ease-in-out infinite; }
+    .art-status-dot.ok { background: #3f7d20; }
+    .art-status-dot.err { background: #b32424; }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.1} }
+
+    .art-status-text {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #72777d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .art-chrome-right {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 5px 24px;
-      background: var(--paper);
-      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
 
-    .status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--ink-4);
-      flex-shrink: 0;
-    }
-
-    .status-dot.loading { background: var(--amber); animation: blink 0.7s ease-in-out infinite; }
-    .status-dot.ok { background: #5a9e4a; }
-    .status-dot.err { background: var(--red); }
-
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
-
-    .status-text {
+    .chrome-nav-btn {
+      padding: 3px 10px;
       font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
-      color: var(--ink-3);
+      border: 1px solid #c8ccd1;
+      border-radius: 3px;
+      background: #f8f9fa;
+      color: #54595d;
+      cursor: pointer;
+      transition: all 0.1s;
     }
 
+    .chrome-nav-btn:hover { background: #eaecf0; color: #202122; }
+    .chrome-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .chrome-stamp {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #fff;
+      background: #54595d;
+      border-radius: 3px;
+      padding: 2px 9px;
+      white-space: nowrap;
+    }
+
+    .chrome-wikilink {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #0645ad;
+      text-decoration: none;
+    }
+
+    .chrome-wikilink:hover { text-decoration: underline; }
+
     /* error box */
-    .error-box {
-      margin: 12px 24px;
-      padding: 12px 16px;
-      background: #fdf0f0;
-      border: 1px solid #e0b0b0;
-      border-radius: 4px;
+    .err-box {
+      margin: 10px 20px;
+      padding: 10px 14px;
+      background: #fee7e6;
+      border: 1px solid #f8c9c8;
+      border-radius: 3px;
       font-size: 13px;
-      color: var(--red);
+      color: #b32424;
       display: none;
     }
 
-    .error-box.show { display: block; }
+    .err-box.show { display: block; }
 
-    /* article body */
-    #articleBody {
+    /* ── ARTICLE BODY — authentic Wikipedia look ── */
+    #article-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 28px 32px 48px;
       background: #fff;
+    }
+
+    #article-scroll::-webkit-scrollbar { width: 6px; }
+    #article-scroll::-webkit-scrollbar-track { background: #f8f9fa; }
+    #article-scroll::-webkit-scrollbar-thumb { background: #c8ccd1; border-radius: 3px; }
+
+    /* The actual article container styled exactly like en.wikipedia.org Vector skin */
+    #mw-content-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px 24px 48px;
+    }
+
+    /* Override any leftover Wikipedia skin chrome we don't want */
+    #mw-content-wrap .mw-editsection { display: none !important; }
+    #mw-content-wrap #toc,
+    #mw-content-wrap .toc { display: none !important; }
+    #mw-content-wrap .navbox,
+    #mw-content-wrap .catlinks,
+    #mw-content-wrap .printfooter,
+    #mw-content-wrap .mw-authority-control { display: none !important; }
+
+    /* Wikipedia body text */
+    #mw-content-wrap .mw-parser-output {
+      font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
+      font-size: 14px;
+      line-height: 1.6;
       color: #202122;
+    }
+
+    #mw-content-wrap .mw-parser-output > p:first-child,
+    #mw-content-wrap .mw-parser-output p {
+      margin-bottom: 0.8em;
+    }
+
+    #mw-content-wrap .mw-parser-output h1,
+    #mw-content-wrap .mw-parser-output h2,
+    #mw-content-wrap .mw-parser-output h3,
+    #mw-content-wrap .mw-parser-output h4 {
       font-family: 'Linux Libertine', 'Georgia', serif;
-      font-size: 14.5px;
-      line-height: 1.72;
+      font-weight: normal;
+      color: #202122;
     }
 
-    #articleBody h2 {
-      font-size: 21px;
-      font-weight: 600;
+    #mw-content-wrap .mw-parser-output h2 {
+      font-size: 1.5em;
       border-bottom: 1px solid #a2a9b1;
-      padding-bottom: 4px;
-      margin: 22px 0 10px;
+      padding-bottom: 0.17em;
+      margin: 1em 0 0.25em;
+      overflow: hidden;
     }
 
-    #articleBody h3 { font-size: 17px; font-weight: 600; margin: 16px 0 7px; }
-    #articleBody h4 { font-size: 15px; font-weight: 600; margin: 14px 0 5px; }
-    #articleBody p { margin-bottom: 10px; }
-    #articleBody sup { font-size: 11px; line-height: 1; }
-    #articleBody .mw-editsection { display: none !important; }
+    #mw-content-wrap .mw-parser-output h3 {
+      font-size: 1.2em;
+      margin: 0.83em 0 0.25em;
+    }
 
-    #articleBody a {
+    #mw-content-wrap .mw-parser-output a {
       color: #0645ad;
-      text-decoration: underline;
+      text-decoration: none;
       cursor: pointer;
     }
 
-    #articleBody a:hover { color: #0b0080; }
+    #mw-content-wrap .mw-parser-output a:hover { text-decoration: underline; }
+    #mw-content-wrap .mw-parser-output a.new { color: #ba0000; }
 
-    #articleBody table {
-      border-collapse: collapse;
-      font-size: 13px;
-      margin: 12px 0;
+    #mw-content-wrap .mw-parser-output img {
       max-width: 100%;
+      height: auto !important;
+      vertical-align: middle;
     }
 
-    #articleBody th, #articleBody td {
+    #mw-content-wrap .mw-parser-output table {
+      border-collapse: collapse;
+      font-size: 0.875em;
+    }
+
+    #mw-content-wrap .mw-parser-output .wikitable {
       border: 1px solid #a2a9b1;
-      padding: 5px 9px;
+      background: #f8f9fa;
+      margin: 1em 0;
+      width: auto;
     }
 
-    #articleBody th {
+    #mw-content-wrap .mw-parser-output .wikitable th,
+    #mw-content-wrap .mw-parser-output .wikitable td {
+      border: 1px solid #a2a9b1;
+      padding: 0.2em 0.4em;
+    }
+
+    #mw-content-wrap .mw-parser-output .wikitable th {
       background: #eaecf0;
-      font-weight: 600;
+      font-weight: bold;
     }
 
-    #articleBody .infobox {
+    #mw-content-wrap .mw-parser-output .infobox {
+      border: 1px solid #a2a9b1;
+      background: #f8f9fa;
       float: right;
       clear: right;
-      margin: 0 0 16px 20px;
-      border: 1px solid #a2a9b1;
-      background: #f8f9fa;
-      font-size: 12.5px;
-      max-width: 280px;
+      margin: 0 0 1em 1em;
+      padding: 0.2em;
+      font-size: 88%;
+      max-width: 22em;
     }
 
-    #articleBody img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    #articleBody ul, #articleBody ol {
-      padding-left: 1.8em;
-      margin-bottom: 10px;
-    }
-
-    #articleBody li { margin-bottom: 3px; }
-
-    #articleBody .thumb {
-      background: #f8f9fa;
+    #mw-content-wrap .mw-parser-output .thumb {
       border: 1px solid #c8ccd1;
-      padding: 4px;
-      display: inline-block;
-      max-width: 50%;
-      margin: 6px;
+      background: #f8f9fa;
+      padding: 3px;
+      text-align: center;
+      overflow: hidden;
     }
 
-    #articleBody .thumbcaption {
-      font-size: 12px;
-      color: #555;
-      margin-top: 4px;
+    #mw-content-wrap .mw-parser-output .thumbinner {
+      font-size: 94%;
+      text-align: left;
     }
 
-    #articleBody::-webkit-scrollbar { width: 5px; }
-    #articleBody::-webkit-scrollbar-track { background: transparent; }
-    #articleBody::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 3px; }
+    #mw-content-wrap .mw-parser-output .thumbcaption {
+      padding: 3px;
+      font-size: 94%;
+      line-height: 1.4em;
+      color: #54595d;
+    }
+
+    #mw-content-wrap .mw-parser-output ul,
+    #mw-content-wrap .mw-parser-output ol {
+      padding-left: 1.6em;
+      margin: 0.5em 0;
+    }
+
+    #mw-content-wrap .mw-parser-output li { margin-bottom: 0.2em; }
+
+    #mw-content-wrap .mw-parser-output sup,
+    #mw-content-wrap .mw-parser-output sub {
+      font-size: 80%;
+      line-height: 1;
+    }
+
+    /* First heading (article title shown by wiki) */
+    #mw-content-wrap h1#firstHeading,
+    #mw-content-wrap .mw-page-title-main {
+      font-family: 'Linux Libertine', 'Georgia', serif;
+      font-size: 2em;
+      font-weight: normal;
+      border-bottom: 1px solid #a2a9b1;
+      padding-bottom: 3px;
+      margin-bottom: 0.5em;
+      color: #202122;
+    }
+
+    /* hatnotes */
+    #mw-content-wrap .hatnote {
+      font-style: italic;
+      padding-left: 1.5em;
+      color: #54595d;
+      margin-bottom: 0.5em;
+    }
+
+    /* quote boxes */
+    #mw-content-wrap .templatequote {
+      padding: 0.5em 2em;
+      border-left: 3px solid #c8ccd1;
+      font-style: italic;
+      color: #54595d;
+      margin: 0.5em 0;
+    }
   </style>
 </head>
 <body>
 
-<!-- ── TOP BAR ── -->
+<!-- TOP BAR -->
 <div id="topbar">
-  <div class="topbar-brand">
-    <div class="brand-eye">&#9679; Time Machine</div>
-    <div class="brand-name">WikiTM</div>
+  <div class="tb-brand">
+    <div class="tb-brand-icon">⏱</div>
+    <div class="tb-brand-text">
+      <div class="tb-brand-title">Wiki Time Machine</div>
+      <div class="tb-brand-sub">history as it happened</div>
+    </div>
   </div>
 
-  <div class="topbar-search">
+  <div class="tb-search">
     <input type="text" id="searchInput" placeholder="Search any Wikipedia article…" autocomplete="off" spellcheck="false" />
-    <div class="ac-dropdown" id="acDropdown"></div>
+    <div class="ac-list" id="acList"></div>
   </div>
 
-  <div class="topbar-time">
-    <div class="time-display" id="timeDisplay">—</div>
+  <div class="tb-time">
+    <div id="timeDisplay"><span class="dim">pick a year →</span></div>
   </div>
 
-  <button id="travelBtn" onclick="doTravel()">&#9654; Travel</button>
+  <button id="travelBtn" onclick="doTravel()">▶ Travel</button>
 </div>
 
-<!-- ── SCRUBBER BAR ── -->
+<!-- SCRUBBER -->
 <div id="scrubbar">
   <div class="scrub-tabs">
-    <div class="scrub-tab active" id="tab-year" onclick="setMode('year')">Year</div>
+    <div class="scrub-tab active" id="tab-year"  onclick="setMode('year')">Year</div>
     <div class="scrub-tab locked" id="tab-month" onclick="setMode('month')">Month</div>
-    <div class="scrub-tab locked" id="tab-day" onclick="setMode('day')">Day</div>
-    <div class="scrub-tab locked" id="tab-time" onclick="setMode('time')">Time</div>
+    <div class="scrub-tab locked" id="tab-day"   onclick="setMode('day')">Day</div>
+    <div class="scrub-tab locked" id="tab-time"  onclick="setMode('time')">Time</div>
   </div>
   <div class="scrub-track" id="scrubTrack"></div>
 </div>
 
-<!-- ── CONTENT AREA ── -->
+<!-- CONTENT -->
 <div id="content-area">
 
-  <!-- welcome -->
   <div id="welcome">
-    <div class="welcome-clock">&#9200;</div>
-    <div class="welcome-title">Read history <em>as it happened.</em></div>
-    <div class="welcome-sub">Search any Wikipedia article, scrub through time, and read it exactly as it was written.</div>
-    <div class="presets-wrap">
-      <button class="preset-chip" onclick="preset('September 11 attacks',2001,9,12,0)">Sep 12, 2001</button>
-      <button class="preset-chip" onclick="preset('iPhone',2007,6,29,0)">iPhone launch</button>
-      <button class="preset-chip" onclick="preset('Barack Obama',2008,11,5,0)">Obama elected</button>
-      <button class="preset-chip" onclick="preset('2008 financial crisis',2008,9,16,0)">2008 crash</button>
-      <button class="preset-chip" onclick="preset('COVID-19 pandemic',2020,3,11,0)">COVID declared</button>
-      <button class="preset-chip" onclick="preset('Minecraft',2011,11,18,0)">Minecraft 1.0</button>
-      <button class="preset-chip" onclick="preset('Elon Musk',2022,10,27,0)">Musk buys Twitter</button>
+    <div class="wlc-clock">⏰</div>
+    <div class="wlc-title">Read history as it happened.</div>
+    <div class="wlc-sub">Search any Wikipedia article, then scrub through time to read it exactly as it was written on any given date.</div>
+    <div class="presets">
+      <button class="preset-btn" onclick="preset('September 11 attacks',2001,9,12,0)">Sep 12, 2001</button>
+      <button class="preset-btn" onclick="preset('iPhone',2007,6,29,0)">iPhone launch</button>
+      <button class="preset-btn" onclick="preset('Barack Obama',2008,11,5,0)">Obama elected</button>
+      <button class="preset-btn" onclick="preset('2008 financial crisis',2008,9,16,0)">2008 crash</button>
+      <button class="preset-btn" onclick="preset('COVID-19 pandemic',2020,3,11,0)">COVID declared</button>
+      <button class="preset-btn" onclick="preset('Minecraft',2011,11,18,0)">Minecraft 1.0</button>
+      <button class="preset-btn" onclick="preset('Elon Musk',2022,10,27,0)">Musk buys Twitter</button>
     </div>
   </div>
 
-  <!-- article -->
-  <div id="article-wrap">
-    <div class="article-topstrip">
-      <div class="article-title-display" id="rTitle"></div>
-      <div class="article-meta-right">
-        <div class="nav-pair">
-          <button class="nav-btn" id="olderBtn" onclick="stepRevision(1)" disabled>&#8592; Older</button>
-          <button class="nav-btn" id="newerBtn" onclick="stepRevision(-1)" disabled>Newer &#8594;</button>
-        </div>
-        <div class="rev-stamp" id="rDateStamp"></div>
-        <a class="wiki-extlink" id="rWikiLink" href="#" target="_blank" rel="noopener">View on Wikipedia ↗</a>
+  <div id="article-view">
+
+    <div class="art-chrome">
+      <div class="art-chrome-left">
+        <div class="art-status-dot" id="statusDot"></div>
+        <span class="art-status-text" id="statusText">Ready</span>
+      </div>
+      <div class="art-chrome-right">
+        <button class="chrome-nav-btn" id="olderBtn" onclick="stepRevision(1)" disabled>← Older</button>
+        <button class="chrome-nav-btn" id="newerBtn" onclick="stepRevision(-1)" disabled>Newer →</button>
+        <div class="chrome-stamp" id="revStamp"></div>
+        <a class="chrome-wikilink" id="wikiLink" href="#" target="_blank" rel="noopener">View on Wikipedia ↗</a>
       </div>
     </div>
 
-    <div class="status-strip">
-      <div class="status-dot" id="statusDot"></div>
-      <span class="status-text" id="statusText">Ready</span>
+    <div class="err-box" id="errBox"></div>
+
+    <div id="article-scroll">
+      <div id="mw-content-wrap">
+        <div id="articleInner"></div>
+      </div>
     </div>
 
-    <div class="error-box" id="errorBox"></div>
-
-    <div id="articleBody"></div>
   </div>
-
 </div>
 
 <script>
 'use strict';
 
-// ── STATE ──────────────────────────────────────────
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// ── CONSTANTS ──────────────────────────────
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const THIS_YEAR    = new Date().getFullYear();
 
-// Selected time values
+// ── STATE ──────────────────────────────────
 let selYear  = null;
-let selMonth = null; // 1-12
+let selMonth = null;
 let selDay   = null;
-let selHour  = null; // 0-23, null = end of day
+let selHour  = null;
 
-// Current scrubber mode
-let mode = 'year'; // year | month | day | time
+let mode = 'year';
 
-// Revision state
-let revisions = [];
-let revIdx = 0;
+// Article creation date (to grey out scrubber)
+let articleCreatedTs = null; // ISO string
+
+// Revision data
+let revisions    = [];
+let revIdx       = 0;
 let currentTitle = '';
 
 // Autocomplete
-let acTimer = null;
+let acTimer   = null;
 let acFocused = -1;
 
-// ── ELEMENTS ──────────────────────────────────────
-const searchInput  = document.getElementById('searchInput');
-const acDropdown   = document.getElementById('acDropdown');
-const travelBtn    = document.getElementById('travelBtn');
-const timeDisplay  = document.getElementById('timeDisplay');
-const scrubTrack   = document.getElementById('scrubTrack');
-const rTitle       = document.getElementById('rTitle');
-const rDateStamp   = document.getElementById('rDateStamp');
-const rWikiLink    = document.getElementById('rWikiLink');
-const statusDot    = document.getElementById('statusDot');
-const statusText   = document.getElementById('statusText');
-const errorBox     = document.getElementById('errorBox');
-const articleBody  = document.getElementById('articleBody');
-const olderBtn     = document.getElementById('olderBtn');
-const newerBtn     = document.getElementById('newerBtn');
-const articleWrap  = document.getElementById('article-wrap');
-const welcome      = document.getElementById('welcome');
+// ── ELEMENTS ───────────────────────────────
+const searchInput = document.getElementById('searchInput');
+const acList      = document.getElementById('acList');
+const travelBtn   = document.getElementById('travelBtn');
+const timeDisplay = document.getElementById('timeDisplay');
+const scrubTrack  = document.getElementById('scrubTrack');
+const statusDot   = document.getElementById('statusDot');
+const statusText  = document.getElementById('statusText');
+const errBox      = document.getElementById('errBox');
+const articleInner= document.getElementById('articleInner');
+const articleScroll = document.getElementById('article-scroll');
+const olderBtn    = document.getElementById('olderBtn');
+const newerBtn    = document.getElementById('newerBtn');
+const revStamp    = document.getElementById('revStamp');
+const wikiLink    = document.getElementById('wikiLink');
+const articleView = document.getElementById('article-view');
+const welcome     = document.getElementById('welcome');
 
-// ── HELPERS ───────────────────────────────────────
+// ── HELPERS ────────────────────────────────
 const pad = n => String(n).padStart(2,'0');
 
-function fmtTimestamp(isoStr) {
-  const d = new Date(isoStr);
-  return d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+function isoToDate(iso) { return new Date(iso); }
+
+function fmtShort(iso) {
+  const d = new Date(iso);
+  return MONTHS_FULL[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
 }
 
-function fmtTimestampFull(isoStr) {
-  const d = new Date(isoStr);
-  return d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
-    + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' UTC';
+function fmtFull(iso) {
+  const d = new Date(iso);
+  return MONTHS_FULL[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear()
+    + '  ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' UTC';
 }
 
 function buildTimestamp() {
-  const y = selYear || 2010;
-  const m = pad(selMonth || 1);
-  const d = pad(selDay || 1);
-  const h = selHour !== null ? selHour : 23;
+  const y   = selYear  || 2010;
+  const m   = pad(selMonth || 1);
+  const d   = pad(selDay   || 1);
+  const h   = selHour !== null ? selHour : 23;
   const min = selHour !== null ? '00' : '59';
   const s   = selHour !== null ? '00' : '59';
   return `${y}-${m}-${d}T${pad(h)}:${min}:${s}Z`;
 }
 
-function daysInMonth(y, m) {
-  return new Date(y, m, 0).getDate();
-}
+function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
 
 function setStatus(type, msg) {
-  statusDot.className = 'status-dot' + (type ? ' ' + type : '');
+  statusDot.className = 'art-status-dot' + (type ? ' '+type : '');
   statusText.textContent = msg;
 }
 
-function showError(msg) {
-  errorBox.textContent = msg;
-  errorBox.className = 'error-box show';
+function showErr(msg) { errBox.textContent = msg; errBox.className = 'err-box show'; }
+function hideErr()    { errBox.className = 'err-box'; }
+
+// Is a given year/month/day before the article creation date?
+function isBeforeCreation(y, m, d) {
+  if (!articleCreatedTs) return false;
+  const created = new Date(articleCreatedTs);
+  const cy = created.getUTCFullYear();
+  const cm = created.getUTCMonth() + 1;
+  const cd = created.getUTCDate();
+  if (y < cy) return true;
+  if (y === cy && m !== null && m < cm) return true;
+  if (y === cy && m !== null && m === cm && d !== null && d < cd) return true;
+  return false;
 }
 
-function hideError() { errorBox.className = 'error-box'; }
-
-// ── TIME DISPLAY ──────────────────────────────────
+// ── TIME DISPLAY ───────────────────────────
 function updateTimeDisplay() {
-  let html = '';
-  if (selYear === null) { timeDisplay.innerHTML = '<span class="dim">pick a year</span>'; return; }
-
-  html += `<span class="${mode==='year' ? 'active-seg' : ''}">${selYear}</span>`;
-
-  if (selMonth !== null) {
-    html += `<span class="dim">-</span><span class="${mode==='month' ? 'active-seg' : ''}">${pad(selMonth)}</span>`;
-  } else {
-    html += `<span class="dim">-??</span>`;
+  if (selYear === null) {
+    timeDisplay.innerHTML = '<span class="dim">pick a year →</span>';
+    return;
   }
-
-  if (selDay !== null) {
-    html += `<span class="dim">-</span><span class="${mode==='day' ? 'active-seg' : ''}">${pad(selDay)}</span>`;
-  } else if (selMonth !== null) {
-    html += `<span class="dim">-??</span>`;
-  }
-
-  if (selHour !== null) {
-    html += `<span class="dim"> </span><span class="${mode==='time' ? 'active-seg' : ''}">${pad(selHour)}:00</span>`;
-  } else if (selDay !== null) {
-    html += `<span class="dim"> ??:??</span>`;
-  }
-
-  timeDisplay.innerHTML = html;
+  let h = '';
+  h += `<span class="${mode==='year'?'seg-active':''}">${selYear}</span>`;
+  if (selMonth !== null) h += `<span class="dim">-</span><span class="${mode==='month'?'seg-active':''}">${pad(selMonth)}</span>`;
+  else h += `<span class="dim">-??</span>`;
+  if (selDay !== null) h += `<span class="dim">-</span><span class="${mode==='day'?'seg-active':''}">${pad(selDay)}</span>`;
+  else if (selMonth !== null) h += `<span class="dim">-??</span>`;
+  if (selHour !== null) h += `<span class="dim"> </span><span class="${mode==='time'?'seg-active':''}">${pad(selHour)}:00</span>`;
+  else if (selDay !== null) h += `<span class="dim"> ??:??</span>`;
+  timeDisplay.innerHTML = h;
 }
 
-// ── TABS / MODE ────────────────────────────────────
+// ── TABS ───────────────────────────────────
 function setMode(m) {
   if (document.getElementById('tab-'+m).classList.contains('locked')) return;
   mode = m;
   ['year','month','day','time'].forEach(t => {
     const el = document.getElementById('tab-'+t);
-    el.classList.toggle('active', t === m);
+    el.classList.toggle('active', t===m);
   });
   renderScrubber();
   updateTimeDisplay();
@@ -796,92 +856,88 @@ function setMode(m) {
 function unlockTabsUpTo(m) {
   const order = ['year','month','day','time'];
   const idx = order.indexOf(m);
-  order.forEach((t, i) => {
-    const el = document.getElementById('tab-'+t);
-    el.classList.toggle('locked', i > idx);
+  order.forEach((t,i) => {
+    document.getElementById('tab-'+t).classList.toggle('locked', i > idx);
   });
 }
 
-// ── SCRUBBER RENDER ────────────────────────────────
+// ── SCRUBBER ───────────────────────────────
 function renderScrubber() {
   scrubTrack.innerHTML = '';
 
   if (mode === 'year') {
-    const start = 2001, end = new Date().getFullYear();
-    for (let y = start; y <= end; y++) {
-      scrubTrack.appendChild(makeScrubItem(String(y), '', y === selYear, () => pickYear(y)));
+    for (let y = 2001; y <= THIS_YEAR; y++) {
+      const before = articleCreatedTs && y < new Date(articleCreatedTs).getUTCFullYear();
+      scrubTrack.appendChild(makeScrubItem(String(y), '', y===selYear, before, () => pickYear(y)));
     }
-    // scroll to selected
-    if (selYear) scrollScrubTo(selYear - start);
+    scrollTo(selYear ? selYear - 2001 : THIS_YEAR - 2001);
 
   } else if (mode === 'month') {
-    MONTHS.forEach((name, i) => {
+    MONTHS_SHORT.forEach((name, i) => {
       const m = i + 1;
-      scrubTrack.appendChild(makeScrubItem(name, String(selYear), m === selMonth, () => pickMonth(m)));
+      const before = isBeforeCreation(selYear, m, null);
+      // check if 'after today' to disable future months
+      const now = new Date();
+      const inFuture = selYear === now.getFullYear() && m > now.getMonth() + 1;
+      scrubTrack.appendChild(makeScrubItem(name, String(selYear), m===selMonth, before || inFuture, () => pickMonth(m)));
     });
-    if (selMonth) scrollScrubTo(selMonth - 1);
+    scrollTo(selMonth ? selMonth - 1 : 0);
 
   } else if (mode === 'day') {
     const days = daysInMonth(selYear, selMonth);
     for (let d = 1; d <= days; d++) {
-      scrubTrack.appendChild(makeScrubItem(pad(d), MONTHS[selMonth-1], d === selDay, () => pickDay(d)));
+      const before = isBeforeCreation(selYear, selMonth, d);
+      const now = new Date();
+      const inFuture = selYear === now.getFullYear() && selMonth === now.getMonth()+1 && d > now.getDate();
+      scrubTrack.appendChild(makeScrubItem(pad(d), MONTHS_SHORT[selMonth-1], d===selDay, before || inFuture, () => pickDay(d)));
     }
-    if (selDay) scrollScrubTo(selDay - 1);
+    scrollTo(selDay ? selDay - 1 : 0);
 
   } else if (mode === 'time') {
-    // hours 0-23
     for (let h = 0; h < 24; h++) {
-      const label = pad(h) + ':00';
-      scrubTrack.appendChild(makeScrubItem(label, 'UTC', h === selHour, () => pickHour(h)));
+      scrubTrack.appendChild(makeScrubItem(pad(h)+':00', 'UTC', h===selHour, false, () => pickHour(h)));
     }
-    if (selHour !== null) scrollScrubTo(selHour);
+    scrollTo(selHour || 0);
   }
 }
 
-function makeScrubItem(label, sub, isActive, onClick) {
+function makeScrubItem(label, sub, isActive, isDisabled, onClick) {
   const div = document.createElement('div');
-  div.className = 'scrub-item' + (isActive ? ' active' : '');
+  let cls = 'scrub-item';
+  if (isActive) cls += ' active';
+  if (isDisabled) cls += ' before-creation';
+  div.className = cls;
   div.innerHTML = `<div class="scrub-label">${label}</div>${sub ? `<div class="scrub-sub">${sub}</div>` : ''}`;
-  div.addEventListener('click', onClick);
+  if (!isDisabled) div.addEventListener('click', onClick);
   return div;
 }
 
-function scrollScrubTo(idx) {
+function scrollTo(idx) {
   requestAnimationFrame(() => {
     const items = scrubTrack.querySelectorAll('.scrub-item');
-    if (items[idx]) {
-      items[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    }
+    if (items[idx]) items[idx].scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
   });
 }
 
-// ── PICK HANDLERS ─────────────────────────────────
+// ── PICK HANDLERS ──────────────────────────
 function pickYear(y) {
-  selYear = y;
-  selMonth = null; selDay = null; selHour = null;
+  selYear = y; selMonth = null; selDay = null; selHour = null;
   unlockTabsUpTo('month');
   updateTimeDisplay();
-  // re-render to mark active
-  renderScrubber();
-  // auto-advance to month
   setMode('month');
 }
 
 function pickMonth(m) {
-  selMonth = m;
-  selDay = null; selHour = null;
+  selMonth = m; selDay = null; selHour = null;
   unlockTabsUpTo('day');
   updateTimeDisplay();
-  renderScrubber();
   setMode('day');
 }
 
 function pickDay(d) {
-  selDay = d;
-  selHour = null;
+  selDay = d; selHour = null;
   unlockTabsUpTo('time');
   updateTimeDisplay();
-  renderScrubber();
   setMode('time');
 }
 
@@ -889,39 +945,41 @@ function pickHour(h) {
   selHour = h;
   updateTimeDisplay();
   renderScrubber();
-  // auto-travel when hour is picked
   doTravel();
 }
 
-// ── PRESETS ───────────────────────────────────────
+// ── PRESETS ────────────────────────────────
 function preset(article, y, m, d, h) {
   searchInput.value = article;
-  selYear = y; selMonth = m; selDay = d; selHour = h;
+  selYear=y; selMonth=m; selDay=d; selHour=h;
+  articleCreatedTs = null;
   unlockTabsUpTo('time');
   updateTimeDisplay();
   setMode('time');
-  doTravel();
+  loadArticleCreationDate(article).then(() => {
+    renderScrubber();
+    doTravel();
+  });
 }
 
-// ── AUTOCOMPLETE ──────────────────────────────────
+// ── AUTOCOMPLETE ───────────────────────────
 searchInput.addEventListener('input', () => {
-  clearTimeout(acTimer);
-  acFocused = -1;
+  clearTimeout(acTimer); acFocused = -1;
   const q = searchInput.value.trim();
   if (q.length < 2) { closeAc(); return; }
   acTimer = setTimeout(() => fetchAc(q), 260);
 });
 
 searchInput.addEventListener('keydown', e => {
-  const items = acDropdown.querySelectorAll('.ac-item');
+  const items = acList.querySelectorAll('.ac-row');
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     acFocused = Math.min(acFocused+1, items.length-1);
-    items.forEach((el,i) => el.classList.toggle('focused', i===acFocused));
+    items.forEach((el,i) => el.classList.toggle('focus', i===acFocused));
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     acFocused = Math.max(acFocused-1, 0);
-    items.forEach((el,i) => el.classList.toggle('focused', i===acFocused));
+    items.forEach((el,i) => el.classList.toggle('focus', i===acFocused));
   } else if (e.key === 'Enter') {
     if (acFocused >= 0 && items[acFocused]) items[acFocused].click();
     else { closeAc(); doTravel(); }
@@ -929,87 +987,102 @@ searchInput.addEventListener('keydown', e => {
 });
 
 document.addEventListener('click', e => {
-  if (!acDropdown.contains(e.target) && e.target !== searchInput) closeAc();
+  if (!acList.contains(e.target) && e.target !== searchInput) closeAc();
 });
 
-function closeAc() {
-  acDropdown.className = 'ac-dropdown';
-  acDropdown.innerHTML = '';
-  acFocused = -1;
-}
+function closeAc() { acList.className='ac-list'; acList.innerHTML=''; acFocused=-1; }
 
 async function fetchAc(q) {
   try {
-    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=7&format=json&origin=*`);
+    const res  = await fetch(`https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=7&format=json&origin=*`);
     const data = await res.json();
     const titles = data[1] || [];
     if (!titles.length) { closeAc(); return; }
-    acDropdown.innerHTML = titles.map(t =>
-      `<div class="ac-item" onclick="selectAc('${t.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-        <span class="ac-item-icon">&#128196;</span>${t}
-      </div>`
-    ).join('');
-    acDropdown.className = 'ac-dropdown open';
+    acList.innerHTML = titles.map(t =>
+      `<div class="ac-row" onclick="selectAc('${t.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+        <span class="ac-row-icon">📄</span>${t}
+      </div>`).join('');
+    acList.className = 'ac-list open';
   } catch(e) { closeAc(); }
 }
 
 function selectAc(title) {
   searchInput.value = title;
   closeAc();
-  doTravel();
+  // fetch creation date then travel
+  articleCreatedTs = null;
+  loadArticleCreationDate(title).then(() => {
+    renderScrubber();
+    doTravel();
+  });
 }
 
-// ── TRAVEL ────────────────────────────────────────
+// ── ARTICLE CREATION DATE ──────────────────
+async function loadArticleCreationDate(title) {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query` +
+      `&titles=${encodeURIComponent(title)}` +
+      `&prop=revisions&rvprop=timestamp&rvdir=newer&rvlimit=1` +
+      `&format=json&origin=*`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    const page = Object.values(data.query.pages)[0];
+    if (page && page.revisions && page.revisions[0]) {
+      articleCreatedTs = page.revisions[0].timestamp;
+    }
+  } catch(e) {}
+}
+
+// ── TRAVEL ─────────────────────────────────
 async function doTravel() {
   const title = searchInput.value.trim();
   if (!title) { setStatus('err','Enter an article name.'); return; }
   if (!selYear) { setStatus('err','Pick a year first.'); return; }
 
   travelBtn.disabled = true;
-  hideError();
+  hideErr();
   revisions = []; revIdx = 0;
 
   welcome.style.display = 'none';
-  articleWrap.className = 'show';
+  articleView.className = 'show';
 
   const ts = buildTimestamp();
-  setStatus('loading', `Searching "${title}" at ${ts.slice(0,10)}…`);
+  setStatus('loading', `Fetching "${title}" at ${ts.slice(0,10)}…`);
 
   try {
+    // Fetch creation date if we don't have it yet
+    if (!articleCreatedTs) await loadArticleCreationDate(title);
+    renderScrubber();
+
     const revUrl = `https://en.wikipedia.org/w/api.php?action=query` +
       `&titles=${encodeURIComponent(title)}` +
-      `&prop=revisions` +
-      `&rvprop=ids|timestamp|comment|user` +
-      `&rvstart=${ts}` +
-      `&rvdir=older` +
-      `&rvlimit=20` +
+      `&prop=revisions&rvprop=ids|timestamp|comment|user` +
+      `&rvstart=${ts}&rvdir=older&rvlimit=20` +
       `&format=json&origin=*`;
 
     const revRes  = await fetch(revUrl);
     const revData = await revRes.json();
+    const pages   = revData.query.pages;
+    const pageId  = Object.keys(pages)[0];
 
-    const pages  = revData.query.pages;
-    const pageId = Object.keys(pages)[0];
-
-    if (pageId === '-1') throw new Error(`No article found for "${title}". Check the spelling.`);
+    if (pageId === '-1') throw new Error(`Article "${title}" not found. Check the spelling.`);
 
     const page    = pages[pageId];
     currentTitle  = page.title;
     const pageRevs = page.revisions || [];
 
-    if (!pageRevs.length) throw new Error(`No revision found at or before ${ts.slice(0,10)}. The article may not have existed yet — try a later date.`);
+    if (!pageRevs.length) throw new Error(`No revision found at ${ts.slice(0,10)} — the article didn't exist yet at this date.`);
 
     revisions = pageRevs;
     revIdx = 0;
 
-    // async: fetch newer revisions for nav context
-    fetchNewerRevisions(pageRevs[0].timestamp);
+    fetchNewerRevisions(pageRevs[0].timestamp); // async, updates nav
 
     await renderRevision(0);
 
   } catch(err) {
-    setStatus('err', 'Could not load article.');
-    showError(err.message || 'An unexpected error occurred.');
+    setStatus('err', 'Failed.');
+    showErr(err.message || 'An unexpected error occurred.');
   } finally {
     travelBtn.disabled = false;
   }
@@ -1025,25 +1098,21 @@ async function fetchNewerRevisions(fromTs) {
     const data = await res.json();
     const page = Object.values(data.query.pages)[0];
     const newer = (page.revisions || []).filter(r => r.revid !== revisions[0].revid).slice(0,5);
-    if (newer.length) {
-      revisions = [...newer.reverse(), ...revisions];
-      revIdx = newer.length;
-    }
+    if (newer.length) { revisions = [...newer.reverse(), ...revisions]; revIdx = newer.length; }
     updateNavBtns();
   } catch(e) {}
 }
 
+// ── RENDER REVISION ────────────────────────
 async function renderRevision(idx) {
   const rev = revisions[idx];
   if (!rev) return;
 
-  setStatus('loading', `Loading revision ${rev.revid} from ${fmtTimestamp(rev.timestamp)}…`);
+  setStatus('loading', `Loading revision #${rev.revid}…`);
 
   const parseUrl = `https://en.wikipedia.org/w/api.php?action=parse` +
-    `&oldid=${rev.revid}` +
-    `&prop=text` +
-    `&disablelimitreport=1` +
-    `&disableeditsection=1` +
+    `&oldid=${rev.revid}&prop=text` +
+    `&disablelimitreport=1&disableeditsection=1` +
     `&format=json&origin=*`;
 
   const parseRes  = await fetch(parseUrl);
@@ -1053,104 +1122,120 @@ async function renderRevision(idx) {
     throw new Error('Could not parse this revision.');
   }
 
-  const rawHtml   = parseData.parse.text['*'];
-  const cleanHtml = cleanWikiHtml(rawHtml);
+  const rawHtml = parseData.parse.text['*'];
 
-  rTitle.textContent = currentTitle;
+  // Build proper article HTML — wrap in mw-parser-output like real Wikipedia
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = rawHtml;
 
-  // Show exact timestamp if user drilled to time level, otherwise show date only
+  // Remove elements we don't want
+  ['.mw-editsection','#toc','.toc',
+   '.navbox','.navbox-inner','.navbox-group',
+   '.catlinks','.printfooter','.mw-authority-control',
+   '[class*="noprint"]','.mw-empty-elt',
+   'style','script','.side-box',
+   '.navigation-not-searchable','.reflist','.refbegin'
+  ].forEach(sel => { try { wrapper.querySelectorAll(sel).forEach(el=>el.remove()); } catch(e){} });
+
+  // Fix all URLs (images, links, srcset)
+  fixAllUrls(wrapper);
+
+  // Inject the article title as h1 (like Wikipedia does)
+  const titleH1 = document.createElement('h1');
+  titleH1.id = 'firstHeading';
+  titleH1.textContent = currentTitle;
+
+  articleInner.innerHTML = '';
+  articleInner.appendChild(titleH1);
+
+  // wrap content in mw-parser-output if it isn't already
+  let content = wrapper.querySelector('.mw-parser-output');
+  if (!content) {
+    content = document.createElement('div');
+    content.className = 'mw-parser-output';
+    content.innerHTML = wrapper.innerHTML;
+  }
+  articleInner.appendChild(content);
+
+  // Wire internal article links
+  wireLinks(articleInner);
+
+  // Update chrome
   const showFull = selHour !== null;
-  rDateStamp.textContent = showFull ? fmtTimestampFull(rev.timestamp) : fmtTimestamp(rev.timestamp);
-
-  rWikiLink.href = `https://en.wikipedia.org/w/index.php?title=${encodeURIComponent(currentTitle)}&oldid=${rev.revid}`;
-
-  articleBody.innerHTML = cleanHtml;
-  wireLinks();
-  fixImages();
+  revStamp.textContent = showFull ? fmtFull(rev.timestamp) : fmtShort(rev.timestamp);
+  wikiLink.href = `https://en.wikipedia.org/w/index.php?title=${encodeURIComponent(currentTitle)}&oldid=${rev.revid}`;
 
   updateNavBtns();
+  articleScroll.scrollTop = 0;
 
-  const statusLabel = showFull ? fmtTimestampFull(rev.timestamp) : fmtTimestamp(rev.timestamp);
-  setStatus('ok', `Revision from ${statusLabel}  ·  #${rev.revid}`);
-  articleBody.scrollTop = 0;
+  const label = showFull ? fmtFull(rev.timestamp) : fmtShort(rev.timestamp);
+  setStatus('ok', `${currentTitle}  ·  ${label}  ·  rev #${rev.revid}`);
 }
 
-function cleanWikiHtml(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-
-  ['.mw-editsection','#toc','.toc','.navbox','.navbox-inner','.navbox-group',
-   '.ambox','.mbox-small','.sistersitebox','.reflist','.references','.refbegin',
-   '.catlinks','.printfooter','.mw-authority-control','.noprint',
-   '[class*="noprint"]','.mw-empty-elt','.shortdescription','.hatnote',
-   'style','script','.side-box','.portal','.navigation-not-searchable'
-  ].forEach(sel => { try { div.querySelectorAll(sel).forEach(el => el.remove()); } catch(e){} });
-
-  div.querySelectorAll('[style]').forEach(el => {
-    const s = el.getAttribute('style') || '';
-    el.removeAttribute('style');
-    if (s.includes('float:right') || s.includes('float: right')) el.style.float = 'right';
-    else if (s.includes('float:left') || s.includes('float: left')) el.style.float = 'left';
+function fixAllUrls(root) {
+  // Fix images
+  root.querySelectorAll('img').forEach(img => {
+    ['src','data-src'].forEach(attr => {
+      let v = img.getAttribute(attr) || '';
+      if (v.startsWith('//')) v = 'https:' + v;
+      v = v.replace(/^http:\/\/upload\.wikimedia\.org/, 'https://upload.wikimedia.org');
+      if (v) img.setAttribute(attr, v);
+    });
+    let ss = img.getAttribute('srcset') || '';
+    if (ss) {
+      ss = ss.replace(/\/\/upload\.wikimedia\.org/g, 'https://upload.wikimedia.org');
+      ss = ss.replace(/http:\/\/upload\.wikimedia\.org/g, 'https://upload.wikimedia.org');
+      img.setAttribute('srcset', ss);
+    }
+    img.removeAttribute('width');
+    img.removeAttribute('height');
+    img.loading = 'lazy';
   });
 
-  return div.innerHTML;
+  // Fix audio/video
+  root.querySelectorAll('source').forEach(s => {
+    let v = s.getAttribute('src') || '';
+    if (v.startsWith('//')) s.src = 'https:' + v;
+  });
+
+  // Fix link hrefs that are protocol-relative
+  root.querySelectorAll('a[href]').forEach(a => {
+    const h = a.getAttribute('href') || '';
+    if (h.startsWith('//')) a.setAttribute('href', 'https:' + h);
+  });
 }
 
-function wireLinks() {
-  articleBody.querySelectorAll('a[href]').forEach(a => {
+function wireLinks(root) {
+  root.querySelectorAll('a[href]').forEach(a => {
     const href = a.getAttribute('href') || '';
-    if (href.startsWith('/wiki/') && !href.includes(':')) {
+    if (href.startsWith('/wiki/') && !href.match(/\/wiki\/[A-Z][a-z]+:/)) {
       const decoded = decodeURIComponent(href.replace('/wiki/','')).replace(/_/g,' ');
       a.href = '#';
-      a.title = `Browse: ${decoded}`;
-      a.onclick = e => { e.preventDefault(); searchInput.value = decoded; doTravel(); };
+      a.title = decoded;
+      a.onclick = e => {
+        e.preventDefault();
+        searchInput.value = decoded;
+        articleCreatedTs = null;
+        loadArticleCreationDate(decoded).then(() => { renderScrubber(); doTravel(); });
+      };
     } else if (href.startsWith('//')) {
       a.href = 'https:' + href;
       a.target = '_blank'; a.rel = 'noopener';
     } else if (href.startsWith('http')) {
       a.target = '_blank'; a.rel = 'noopener';
-    } else if (!href.startsWith('#')) {
-      a.href = '#';
-      a.onclick = e => e.preventDefault();
     }
   });
 }
 
-function fixImages() {
-  articleBody.querySelectorAll('img').forEach(img => {
-    // Fix protocol-relative URLs
-    let src = img.getAttribute('src') || '';
-    if (src.startsWith('//')) src = 'https:' + src;
-
-    // Fix srcset
-    let srcset = img.getAttribute('srcset') || '';
-    if (srcset) {
-      srcset = srcset.replace(/\/\/upload\.wikimedia\.org/g, 'https://upload.wikimedia.org');
-      img.setAttribute('srcset', srcset);
-    }
-
-    // Ensure src uses https
-    src = src.replace(/^http:\/\//, 'https://');
-    img.src = src;
-    img.loading = 'lazy';
-
-    // Remove width/height constraints that break layout
-    img.removeAttribute('width');
-    img.removeAttribute('height');
-    img.style.maxWidth = '100%';
-    img.style.height = 'auto';
-  });
-}
-
-// ── NAVIGATION ────────────────────────────────────
+// ── NAV ────────────────────────────────────
 async function stepRevision(dir) {
-  const newIdx = revIdx + dir;
-  if (newIdx < 0 || newIdx >= revisions.length) return;
-  revIdx = newIdx;
+  const ni = revIdx + dir;
+  if (ni < 0 || ni >= revisions.length) return;
+  revIdx = ni;
   travelBtn.disabled = true;
   setStatus('loading','Loading revision…');
   try { await renderRevision(revIdx); }
-  catch(e) { showError(e.message || 'Failed to load.'); setStatus('err','Error'); }
+  catch(e) { showErr(e.message||'Failed.'); setStatus('err','Error'); }
   finally { travelBtn.disabled = false; }
 }
 
@@ -1159,9 +1244,8 @@ function updateNavBtns() {
   newerBtn.disabled = revIdx <= 0;
 }
 
-// ── INIT ──────────────────────────────────────────
+// ── INIT ───────────────────────────────────
 renderScrubber();
-updateTimeDisplay();
 </script>
 </body>
 </html>
