@@ -1208,15 +1208,13 @@ function fixAllUrls(root) {
 function wireLinks(root) {
   root.querySelectorAll('a[href]').forEach(a => {
     const href = a.getAttribute('href') || '';
-    if (href.startsWith('/wiki/') && !href.match(/\/wiki\/[A-Z][a-z]+:/)) {
+    if (href.startsWith('/wiki/') && !href.match(/\/wiki\/[A-Za-z]+:/)) {
       const decoded = decodeURIComponent(href.replace('/wiki/','')).replace(/_/g,' ');
       a.href = '#';
       a.title = decoded;
       a.onclick = e => {
         e.preventDefault();
-        searchInput.value = decoded;
-        articleCreatedTs = null;
-        loadArticleCreationDate(decoded).then(() => { renderScrubber(); doTravel(); });
+        navigateToArticle(decoded);
       };
     } else if (href.startsWith('//')) {
       a.href = 'https:' + href;
@@ -1225,6 +1223,37 @@ function wireLinks(root) {
       a.target = '_blank'; a.rel = 'noopener';
     }
   });
+}
+
+async function navigateToArticle(title) {
+  searchInput.value = title;
+  articleCreatedTs = null;
+
+  // Fetch the creation date of the target article first
+  await loadArticleCreationDate(title);
+
+  // If the current selected date is before this article was created,
+  // snap the date forward to the article's creation date
+  if (articleCreatedTs) {
+    const created = new Date(articleCreatedTs);
+    const cy = created.getUTCFullYear();
+    const cm = created.getUTCMonth() + 1;
+    const cd = created.getUTCDate();
+    const ch = created.getUTCHours();
+
+    const currentTs = buildTimestamp();
+    if (!selYear || new Date(currentTs) < created) {
+      selYear  = cy;
+      selMonth = cm;
+      selDay   = cd;
+      selHour  = selHour !== null ? ch : null;
+      unlockTabsUpTo(selHour !== null ? 'time' : 'day');
+      updateTimeDisplay();
+    }
+  }
+
+  renderScrubber();
+  doTravel();
 }
 
 // ── NAV ────────────────────────────────────
